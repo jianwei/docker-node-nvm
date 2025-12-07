@@ -36,7 +36,9 @@ RUN export NVM_DIR="$HOME/.nvm" && \
     nvm install 20 && \
     nvm install 22 && \
     nvm install 24 && \
-    nvm alias default 20
+    nvm alias default 20 && \
+    nvm use default && \
+    npm install -g pnpm
 
 
 
