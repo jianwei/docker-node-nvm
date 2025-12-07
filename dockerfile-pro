@@ -1,0 +1,32 @@
+# 第一阶段：使用 node-nvm 构建项目
+FROM node-nvm:1.0.0 AS builder
+
+WORKDIR /app
+
+# 复制项目文件
+COPY node-pro ./
+
+# 安装依赖并构建
+RUN export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    nvm use 20 && \
+    npm install && \
+    npm run build
+
+RUN nvm use 8
+
+# 第二阶段：使用 openresty 部署
+FROM registry.cn-hangzhou.aliyuncs.com/dockertransfer/openresty:latest
+
+# 复制构建产物到 openresty 的 html 目录
+COPY --from=builder /app/public /opt/tuniu/www/html
+
+# 复制 nginx 配置文件
+COPY node-pro/nginx/default.conf /usr/local/openresty/nginx/conf/conf.d/default.conf
+
+# 暴露端口
+EXPOSE 80
+
+# 启动 openresty
+CMD ["/usr/local/openresty/bin/openresty", "-g", "daemon off;"]
+
